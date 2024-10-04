@@ -22,6 +22,6 @@
 
 ![输入字符‘a’](https://library-chengdu.oss-cn-chengdu.aliyuncs.com/enterascii.png)
 
-4.暴力破解
+4.暴力破解 5.多个可能密钥
 
 ![](https://library-chengdu.oss-cn-chengdu.aliyuncs.com/brute.png)
