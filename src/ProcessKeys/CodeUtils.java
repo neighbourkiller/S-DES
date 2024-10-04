@@ -89,7 +89,6 @@ public class CodeUtils {
         result.append(r2);
 
         return ChangeBy(result.toString(), FP_BOX);
-
     }
 
     //解密

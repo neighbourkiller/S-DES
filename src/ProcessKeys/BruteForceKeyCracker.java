@@ -1,6 +1,8 @@
 package ProcessKeys;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,7 +14,7 @@ public class BruteForceKeyCracker {
     private static String CIPHERTEXT = "11011000";
     private static String Keys = null;
 
-    // 异或解密函数
+/*    // 异或解密函数
     public static String xorDecrypt(String text, String key) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < text.length(); i++) {
@@ -69,21 +71,52 @@ public class BruteForceKeyCracker {
         // 结束计时
         long endTime = System.currentTimeMillis();
         long use = endTime - startTime;
-        Map<String,Long> map=new HashMap<>();
-        map.put(Keys,use);
+        Map<String, Long> map = new HashMap<>();
+        map.put(Keys, use);
+        return map;
+    }*/
+
+    public static Map<Long, List<String>> bruteForce(String plaintext, String ciphertext){
+
+        long startTime = System.currentTimeMillis();
+        // 调用多线程破解方法
+        List<String> Keys = bruteForce2(plaintext, ciphertext);
+        // 结束计时
+        long endTime = System.currentTimeMillis();
+        long use = endTime - startTime;
+        Map<Long, List<String>> map = new HashMap<>();
+        map.put(use, Keys);
         return map;
     }
 
+
+    private static List<String> bruteForce2(String plaintext, String ciphertext) {
+        // 密钥空间（假设密钥长度为10位二进制）
+        int keySpaceSize = 1024; // 2^10 = 1024
+        boolean found = false;
+        List<String> possibleKeys = new ArrayList<>();
+        for (int key = 0; key < keySpaceSize; key++) {
+            String keys = String.format("%10s", Integer.toBinaryString(key)).replace(' ', '0');
+            String candidateCiphertext = CodeUtils.Encode(plaintext, keys); // 使用不同的密钥加密明文
+            if (candidateCiphertext.equals(ciphertext)) {
+                found = true;
+                System.out.println("找到匹配的密钥: " + keys);
+                possibleKeys.add(keys);
+            }
+        }
+
+        if (!found) {
+            System.out.println("没有找到匹配的密钥。");
+            return null;
+        }
+        return possibleKeys;
+    }
+
     public static void main(String[] args) throws InterruptedException {
-        // 开始计时
-        long startTime = System.currentTimeMillis();
+        String plaintext = "10101010";  // 明文
+        String ciphertext = "11001100"; // 密文
+        bruteForce2(plaintext, ciphertext);
 
-        // 调用多线程破解方法
-        bruteForceWithThreads();
-
-        // 结束计时
-        long endTime = System.currentTimeMillis();
-        System.out.println("破解耗时: " + (endTime - startTime) + " 毫秒");
     }
 
 

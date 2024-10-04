@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.util.Map;
 
 public class S_DESWindow extends JFrame {
@@ -14,7 +15,7 @@ public class S_DESWindow extends JFrame {
     private JTextField inputKeys;  //密钥
     private JTextField displayField;//密文
     private JTextField displayTime;//显示暴力破解时间
-    private String msg = new String();
+    private JTextArea displayOther;//显示密钥的其他解
     private int op = 0;//操作 1:加密 2：解密 3:暴力破解
 
     public S_DESWindow() {
@@ -29,17 +30,11 @@ public class S_DESWindow extends JFrame {
         inputField = new JTextField(10);
         inputKeys = new JTextField(10);
         displayField = new JTextField(15);
-
         displayTime = new JTextField(15);
         displayTime.setEditable(false);
-        // 添加键盘输入监听器
-        inputField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                op = 1;
-                TestInput(inputField.getText(), inputKeys.getText());
-            }
-        });
+        displayOther = new JTextArea();
+        displayOther.setEditable(false);
+
         JButton btnok = new JButton("加密");
         JButton btnc = new JButton("清除");
         JButton btnUn = new JButton("解密");
@@ -57,6 +52,8 @@ public class S_DESWindow extends JFrame {
                 inputField.setText("");
                 inputKeys.setText("");
                 displayField.setText("");
+                displayTime.setText("");
+                displayOther.setText("");
             }
         });
         btnUn.addActionListener(new ActionListener() {
@@ -89,7 +86,7 @@ public class S_DESWindow extends JFrame {
         add(btnUn);
         add(btnc);
         add(displayTime);
-
+        add(displayOther);
         setLocationRelativeTo(null);
         // 使窗体可见
         setVisible(true);
@@ -118,7 +115,7 @@ public class S_DESWindow extends JFrame {
         // 检查字符是否在 ASCII 符号的范围内
         if (!(asciiValue >= 32 && asciiValue <= 126))
             return "false"; //不是符号，返回 false
-        return "0"+Integer.toBinaryString(asciiValue);
+        return String.format("%10s", Integer.toBinaryString(asciiValue)).replace(' ', '0');
     }
 
     private void TestInput(String Code, String keys) {
@@ -153,20 +150,20 @@ public class S_DESWindow extends JFrame {
                 inputField.setText("");
                 JOptionPane.showMessageDialog(null, "密文输入错误", "错误", JOptionPane.ERROR_MESSAGE);
             } else {
-                Map<String, Long> map = null;
-                try {
-                    map = BruteForceKeyCracker.bruteForce(Code, keys);
-                    if (map == null) {
-                        displayTime.setText("破解失败");
-                    } else
-                        for (Map.Entry<String, Long> entry : map.entrySet()) {
-                            inputKeys.setText(entry.getKey());
-                            displayTime.setText("暴力破解耗时:" + entry.getValue() + "ms");
-                        }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                Map<Long, List<String>> map = BruteForceKeyCracker.bruteForce(Code, keys);
+                if (map == null)
+                    displayTime.setText("破解失败");
+                else for (Map.Entry<Long, List<String>> entry : map.entrySet()) {
+                    displayTime.setText("暴力破解耗时:" + entry.getKey() + "ms");
+                    List<String> Keys = entry.getValue();
+                    inputKeys.setText(Keys.get(0));
+                    if (Keys.size() >= 2) {
+                        displayOther.setRows(Keys.size());
+                        displayOther.setText("密钥其他可能值：\n");
+                        for (int i = 1; i < Keys.size(); i++)
+                            displayOther.append(Keys.get(i) + "\n");
+                    }
                 }
-
             }
         }
     }
